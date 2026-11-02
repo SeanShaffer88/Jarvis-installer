@@ -3,10 +3,13 @@
 ## Requirements on the build machine
 
 - Windows 10 1809+ or Windows 11, x64.
-- Python 3.11+, Git, Node.js + npm (**build time only**), Inno Setup 6.4+.
+- Python 3.11+ with tkinter, Git, Node.js + npm (**build time only**), and
+  Inno Setup 6.4+ for the original wizard.
+- PyInstaller and Playwright + Chromium for the one-click `.exe` path.
 - A **private local** JARVIS fork, or outbound access to the pinned public
   upstream commit.
-- Optional: a Windows `openssl.exe` (Git for Windows supplies one).
+- A Windows `openssl.exe` (Git for Windows supplies one); required by the
+  one-click build.
 
 Node is used only to produce `frontend/dist`; the target PC never runs Vite or
 Node.
@@ -53,6 +56,24 @@ iscc JarvisSetup.iss
 
 The compiled `dist\JarvisSetup.exe` is a per-user installer. Do not publish it
 or the payload without the upstream author's commercial licence.
+
+## One-click `JarvisOneClick.exe`
+
+The no-console end-user path is built by double-clicking
+[`tools/build_oneclick_gui.pyw`](../tools/build_oneclick_gui.pyw) and choosing
+the private JARVIS fork. The GUI silently installs PyInstaller/Playwright if
+missing, prepares Chromium, stages the private payload, and invokes
+[`tools/build_oneclick.py`](../tools/build_oneclick.py). Output:
+
+```text
+.build\oneclick\dist\JarvisOneClick.exe
+```
+
+The generated PyInstaller spec is one-file and windowed, with no admin request,
+no Node runtime, no venv, no Inno Setup, and a SHA-256 manifest. The compiled
+exe embeds upstream source and must stay private/local. See
+[`ONECLICK.md`](ONECLICK.md). No compiled exe is produced in this Linux
+sandbox; the one-click path is **Unverified**.
 
 ## Pinning and updates
 

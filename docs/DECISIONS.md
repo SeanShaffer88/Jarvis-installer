@@ -10,6 +10,7 @@ confirmed before implementation.
 | Pillow | **Accepted** | Windows screenshots use `PIL.ImageGrab` and Pillow resize/PNG encode; macOS keeps `sips`. No PowerShell image plumbing. |
 | Permission prompts | **Safe 4a** | Closed vocabulary is preserved; exact pid → console/host → HWND proof is audited, but v1 never calls `SendInput`. The user presses the key. |
 | Fork location | **Private/local** | No upstream source is committed here. The build script creates a local payload and copies the upstream licence into it. |
+| One-click distribution | **Single private `JarvisOneClick.exe` built from source** | GUI-only first run, hidden helpers, embedded private payload, and browser Claude sign-in if needed. No visible Terminal, PowerShell, VS Code, or Git Bash. |
 
 ## Additional implementation decisions
 
