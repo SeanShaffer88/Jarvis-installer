@@ -1,7 +1,9 @@
 # Verification status
 
 **Overall: implementation files are present; Linux unit/static checks and a
-pinned frontend build pass; Windows behaviour is Unverified.**
+pinned frontend build pass; Windows behaviour is Unverified.** The one-click
+`JarvisOneClick.exe` path is also Unverified: no PyInstaller compile, Windows VM
+run, or field test has happened in this Linux sandbox.
 No Phase 0 spike, Inno Setup compilation, clean-VM install/uninstall/reinstall,
 upstream Windows suite, real toast, real screenshot, or SEAN field test has been
 run in this session. Linux unit tests exercise safety invariants with fakes;
@@ -11,13 +13,16 @@ Verified in this session:
 
 - `python -m compileall -q jarvis_win tools tests` — pass.
 - `python tools/lint_iss.py` — pass.
-- `python tools/run_tests.py` — 69 tests pass.
+- `python tools/run_tests.py` — 100 tests pass.
 - `python tools/build_package.py --upstream /home/user/_upstream_jarvis --out .build/installer` —
   staged 215 payload files and built `frontend/dist` from the pinned upstream
   ref. No `.env`, private database, or `frontend/node_modules` is shipped.
 - `npm ci` reported two high-severity advisories in upstream build-only dev
   dependencies. The lockfile was not changed and the target PC receives no
   Node or Vite runtime.
+- One-click source, hidden helpers, frozen server/MCP patches, PyInstaller spec
+  generation, GUI builder, payload secret scan, and docs pass Linux tests.
+  No compiled `JarvisOneClick.exe` exists here.
 
 | Plan phase | Implementation | Verification |
 |---|---|---|
@@ -27,7 +32,8 @@ Verified in this session:
 | 3 Screen sight | `screen_win.py`, `win32.py`, Pillow | Logic and blank-frame tests with fake images; real multi-monitor GDI capture untested. |
 | 4 Dialog 4a | `dialog_win.py`, `console_probe.py`, identity probe | Linux unit tests for closed vocabulary / no-send; HWND identity chain unverified. **4b deliberately absent.** |
 | 5 Installer + launcher | `JarvisSetup.iss`, PowerShell helpers, `setup_runtime.py`, `launcher.py` | Static checks and Python unit tests; Inno Setup compile, clean-VM install, uninstall/reinstall untested. |
-| 6 Gates + field test | `tools/run_tests.py`, `docs/TESTING.md` | 69 Linux unit tests, static lint, and frontend build pass in sandbox; upstream Windows suite, VM lifecycle, and field test outstanding. |
+| 6 Gates + field test | `tools/run_tests.py`, `docs/TESTING.md` | 100 Linux unit tests, static lint, and frontend build pass in sandbox; upstream Windows suite, VM lifecycle, and field test outstanding. |
+| One-click .exe | `oneclick/`, `tools/build_oneclick.py`, `tools/build_oneclick_gui.pyw` | Linux unit/static tests pass; PyInstaller compile, clean-VM install, and field test **Unverified**. |
 
 ## Hard gates still open
 
@@ -41,7 +47,10 @@ Verified in this session:
 4. **Spike D:** run the upstream suite on Windows and catalogue failures.
 5. **Installer:** compile with Inno Setup 6.4, install on a clean VM, log in,
    uninstall, confirm data survives, reinstall, and resume.
-6. **Field test:** speak → brainstorm → approve a spec by voice → build →
+6. **One-click exe:** compile with PyInstaller, install on a clean VM, confirm
+   no console windows, only the Fish key prompt, browser login, Chrome mic,
+   relaunch without a prompt, and update preserving data.
+7. **Field test:** speak → brainstorm → approve a spec by voice → build →
    blocked session → toast/spoken alert → user presses key → screen sight.
 
-Never describe the field-test verdict as passed until step 6 actually happens.
+Never describe the field-test verdict as passed until step 7 actually happens.

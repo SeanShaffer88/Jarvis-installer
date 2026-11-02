@@ -72,3 +72,14 @@ the venv are gitignored.
   speak to loopback. This is the upstream design and is not widened here.
 - Cross-session steering transport and HWND mapping are unverified until
   Spikes A/C run on a real Windows machine.
+
+
+## One-click frozen exe
+
+The one-click path keeps the same loopback/origin trust model and adds a
+frozen-exe secret scan that refuses `.env`, certificates, private databases,
+logs, runtime state, `node_modules`, `.iss` files, and unexpected executables or
+PowerShell scripts. The Fish key stays in an external user-only `.env`; the
+frozen process scrubs inherited `ANTHROPIC_*` and `CLAUDE_CODE_*` variables.
+The compiled exe embeds upstream source and must remain private/local. Hidden
+helpers never place the key on a command line or in a log.

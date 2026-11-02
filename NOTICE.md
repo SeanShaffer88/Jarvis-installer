@@ -18,4 +18,6 @@ pinned public clone) and includes a copy of the upstream licence as
 `dist`, payloads, executables, certificates, secrets, and runtime data.
 
 Do not attach the built installer or payload to a public GitHub release
-without the upstream author's permission.
+without the upstream author's permission. The single-file `JarvisOneClick.exe`
+embeds the generated payload and is subject to the same private/local
+restriction; it is not produced or committed in this repository.

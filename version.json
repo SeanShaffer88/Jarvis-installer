@@ -1,5 +1,6 @@
 {
   "installer_version": "0.1.0",
+  "one_click_mode": "source-only-frozen",
   "overlay_protocol": 1,
   "app_user_model_id": "SeanShaffer.Jarvis.Windows",
   "api_port": 8340,

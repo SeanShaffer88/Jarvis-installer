@@ -6,7 +6,7 @@
 python tools/run_tests.py
 ```
 
-The 69-test suite uses only the Python standard library. It covers:
+The 100-test suite uses only the Python standard library. It covers:
 
 - native Claude resolution and `.cmd` rejection;
 - named-pipe/AF_UNIX classification and JSON payloads;
@@ -21,7 +21,10 @@ The 69-test suite uses only the Python standard library. It covers:
 - setup log redaction, `.env` preservation, job-file deletion, cancellation;
 - launcher environment and stop verification;
 - payload staging and licence/manifest generation;
-- Inno Setup and PowerShell static safety checks.
+- Inno Setup and PowerShell static safety checks;
+- one-click path/env/redaction/hidden-argv helpers and a fake full setup flow;
+- frozen MCP/restart patches, no-terminal/no-editor action patches, and hidden toast argv;
+- PyInstaller one-file spec generation, payload secret scan, and SHA-256 manifests.
 
 These tests do **not** prove a real Windows desktop works.
 
@@ -45,6 +48,20 @@ Follow [`SPIKES.md`](SPIKES.md) first. Then:
 7. Reinstall over the top. Confirm no duplicate key page requirement, no
    regenerated cert, no lost memory, and no second server on port 8340.
 8. Run `spikes baseline --run` and write the failure catalogue.
+
+## One-click Windows gates
+
+Follow [`ONECLICK.md`](ONECLICK.md) before calling the one-click path working:
+
+1. Compile `JarvisOneClick.exe` with PyInstaller on Windows.
+2. Run on a clean VM with no Python, no Git, no Node, and no Claude Code.
+3. Confirm no console windows appear during WinGet, certificate, sign-in,
+   startup-shortcut, server, or toast helpers.
+4. Confirm the first GUI asks only for the Fish Audio key and opens browser
+   sign-in when needed.
+5. Confirm Chrome uses exactly `https://localhost:8340`, the microphone works,
+   and JARVIS speaks.
+6. Relaunch without a key prompt; replace the exe and confirm data survives.
 
 ## Field test — the verdict
 

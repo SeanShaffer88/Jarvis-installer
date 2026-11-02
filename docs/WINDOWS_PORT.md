@@ -41,3 +41,15 @@ path, a named pipe, or no `messagingSocketPath` at all. The transport supports
 the first two and degrades to `not_live` for the third. No code claims a real
 steer has been received until `spikes transport --send-test --acknowledge`
 works on a live Windows session.
+
+
+## One-click patch overlay
+
+The frozen GUI path installs the nine-module Windows overlay and then applies
+extra in-memory patches. `actions.open_terminal` and `actions.open_in_editor`
+fail closed; Chrome remains the only visible action path; toast PowerShell is
+hidden; preflight wording never tells the user to open a terminal; the brain's
+MCP child becomes `JarvisOneClick.exe --mcp`; `/api/restart` becomes a hidden
+`JarvisOneClick.exe --server`; and every child process inherits
+`CREATE_NO_WINDOW`. Safe 4a and all outcome strings are unchanged. See
+[`ONECLICK.md`](ONECLICK.md).

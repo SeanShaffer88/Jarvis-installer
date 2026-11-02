@@ -60,3 +60,15 @@ licence and stays local.
 `127.0.0.1`. There is no Vite dev server at runtime, no Node on the PC, and no
 5173→5174 microphone-origin trap. Self-signed certs include a localhost SAN.
 The launcher waits for `/api/health` before opening Chrome.
+
+
+## One-click frozen path
+
+`oneclick/` plus `tools/build_oneclick.py` produce a separate one-file
+`JarvisOneClick.exe`. It embeds the private payload, Python runtime,
+`frontend/dist`, Windows overlay, `openssl.exe`, and Playwright Chromium. The
+persistent `%LOCALAPPDATA%\Programs\Jarvis` root keeps `.env`, `data\`, certs,
+logs, and `runtime.json`. The same exe runs four modes: default GUI,
+`--launch`, hidden `--server`, and hidden `--mcp`. One-click patches disable
+visible terminals/editors, hide helper windows, rewrite MCP/restart commands,
+and keep loopback/origin behaviour unchanged. See [`ONECLICK.md`](ONECLICK.md).
