@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/ethanplusai/jarvis.git",
+  "pinned_ref": "16e37bd801eb797798e02540665f8b3804b0fe14",
+  "license": "personal, educational, and non-commercial use only; attribution required",
+  "private_fork_recommended": true,
+  "note": "Pinned to the source revision inspected for the Option 2 plan. Re-run all spikes and tests after changing this ref."
+}

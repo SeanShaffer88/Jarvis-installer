@@ -1,0 +1,17 @@
+{
+  "strategy": "winget-user",
+  "scope": "user",
+  "python_package_id": "Python.Python.3.12",
+  "python_min_version": "3.11",
+  "git_package_id": "Git.Git",
+  "claude_package_id": "Anthropic.ClaudeCode",
+  "claude_min_version": "2.1.224",
+  "native_claude_only": true,
+  "node_needed": false,
+  "official_setup_docs": "https://code.claude.com/docs/en/setup",
+  "notes": [
+    "WinGet delivers the official python.org installer, Git for Windows, and the native Claude Code binary.",
+    "A claude.cmd or claude.bat npm shim is explicitly rejected; asyncio.create_subprocess_exec cannot execute it.",
+    "Git for Windows also supplies openssl.exe for the self-signed localhost certificate."
+  ]
+}

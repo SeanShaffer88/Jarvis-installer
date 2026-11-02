@@ -1,0 +1,7 @@
+{
+  "installer_version": "0.1.0",
+  "overlay_protocol": 1,
+  "app_user_model_id": "SeanShaffer.Jarvis.Windows",
+  "api_port": 8340,
+  "bind_host": "127.0.0.1"
+}
