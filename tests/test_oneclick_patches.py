@@ -103,7 +103,8 @@ class PatchTests(unittest.TestCase):
         self.assertNotIn("shell", kwargs)
         if os.name == "nt":
             self.assertEqual(kwargs["creationflags"], win.hidden_creationflags())
-            self.assertEqual(kwargs["startupinfo"], win.hidden_startupinfo())
+            self.assertEqual(kwargs["startupinfo"].dwFlags, 0x00000001)
+            self.assertEqual(kwargs["startupinfo"].wShowWindow, 0)
         else:
             self.assertNotIn("creationflags", kwargs)
             self.assertNotIn("startupinfo", kwargs)

@@ -21,6 +21,7 @@ from typing import Callable, Mapping
 
 from . import core
 from .core import Paths
+from ._env_windows import WindowsStore
 
 Runner = Callable[..., "CommandResult"]
 Spinner = Callable[..., subprocess.Popen]
@@ -217,14 +218,21 @@ def finish_login(process: subprocess.Popen, *, timeout: float = 60.0) -> None:
 def write_env_and_acl(paths: Paths, api_key: str, *, run: Runner,
                       env: Mapping[str, str] | None = None) -> None:
     """Write the Fish key to an external, user-only .env without logging it."""
-    if not api_key.strip():
-        existing = core.read_env(paths.env_file).get("FISH_API_KEY", "").strip()
-        if not existing:
-            raise SetupError("A Fish Audio API key is required for the voice.")
-        return
-    key = api_key.strip()
-    core.update_env(paths.env_file, {"FISH_API_KEY": key},
-                    acl=lambda path: run(core.acl_argv(path, env)))
+    try:
+        store = WindowsStore()
+        if not api_key.strip():
+            existing = dict(core.parse_env(store.reuse(paths.env_file))).get("FISH_API_KEY", "").strip()
+            if not existing:
+                raise SetupError("A Fish Audio API key is required for the voice.")
+            return
+        core._update_env_with_store(paths.env_file, {"FISH_API_KEY": api_key.strip()},
+                                    acl=store.secure_temp, store=store)
+    except SetupError:
+        raise
+    except Exception as primary:
+        error = SetupError("The voice settings could not be saved securely.")
+        error.persistence_error = primary
+        raise error from None
 
 
 def ensure_dirs(paths: Paths) -> None:

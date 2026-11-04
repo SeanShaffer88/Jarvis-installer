@@ -6,7 +6,7 @@
 python tools/run_tests.py
 ```
 
-The 100-test suite uses only the Python standard library. It covers:
+The suite uses only the Python standard library. It covers:
 
 - native Claude resolution and `.cmd` rejection;
 - named-pipe/AF_UNIX classification and JSON payloads;
@@ -27,6 +27,20 @@ The 100-test suite uses only the Python standard library. It covers:
 - PyInstaller one-file spec generation, payload secret scan, and SHA-256 manifests.
 
 These tests do **not** prove a real Windows desktop works.
+
+Secret-persistence tests inject a portable store and mock native calls by default;
+a fake command runner alone must never stand in for ACL verification. The separate
+native gate is explicitly enabled with `JARVIS_TEST_NATIVE_ENV=1` and
+`python -m unittest tests.test_oneclick.NativeEnvTests -v`. It creates only fresh,
+owned temporary fixtures containing inert strings. The low-level API test checks
+DACL readback, handle writes, flush, rename and lifetime. A second API test checks
+actual old bytes/ACL preservation with injected precommit failures and committed
+file survival after a close failure; its fixture acquisition bypasses ancestor
+validation. The complete-store test
+also checks ancestor validation, replacement, reuse, and old bytes/ACL preservation
+on injected prepublication failures. A blocked ancestor open is a failed native
+gate, not evidence that the complete store passed. These source tests do not
+validate a frozen executable or the private upstream payload.
 
 ## Windows gates
 

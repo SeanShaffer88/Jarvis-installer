@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable, Mapping
@@ -155,13 +156,108 @@ def scrub_anthropic(environ: dict[str, str] | None = None) -> dict[str, str]:
 
 def update_env(path: str | os.PathLike[str], updates: Mapping[str, str], *,
                acl: Callable[[Path], None] | None = None) -> Path:
-    """Atomically update settings, preserving comments and unknown keys."""
+    """Update settings; acl receives an empty temporary file and must return None."""
+    return _update_env_with_store(path, updates, acl=acl, store=_EnvStore())
+
+
+class EnvPersistenceError(RuntimeError):
+    """Sanitized failure with internal primary-error and cleanup evidence."""
+
+    def __init__(self, stage, primary, cleanup_failed=False):
+        super().__init__("The voice settings could not be saved securely.")
+        self.stage = stage
+        self.primary = primary
+        self.cleanup_failed = cleanup_failed or getattr(primary, "cleanup_failed", False)
+
+
+class _EnvStore:
+    def begin(self, path):
+        return _EnvTransaction(path)
+
+
+class _EnvTransaction:
+    def __init__(self, path):
+        self.path = path
+        self.committed = False
+        self.original = path.read_text(encoding="utf-8") if path.exists() else None
+        fd, name = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
+        self.temp_path = Path(name)
+        self.fd = fd
+        self.identity = os.fstat(fd)
+
+    def check_identity(self):
+        current = self.temp_path.lstat()
+        if not os.path.samestat(self.identity, current):
+            raise OSError("Temporary file identity changed")
+
+    def write_all(self, content):
+        view = memoryview(content)
+        while view:
+            count = os.write(self.fd, view)
+            if count == 0:
+                raise OSError("Incomplete settings write")
+            view = view[count:]
+
+    def flush(self):
+        os.fsync(self.fd)
+
+    def publish(self):
+        self.check_identity()
+        self.close()
+        os.replace(self.temp_path, self.path)
+        self.committed = True
+
+    def abort(self):
+        if not self.committed:
+            self.check_identity()
+            self.close()
+            self.temp_path.unlink()
+
+    def close(self):
+        if self.fd is not None:
+            fd, self.fd = self.fd, None
+            os.close(fd)
+
+
+def _update_env_with_store(path, updates, *, acl, store) -> Path:
     env_path = Path(path)
-    env_path.parent.mkdir(parents=True, exist_ok=True)
-    if env_path.exists():
-        lines = env_path.read_text(encoding="utf-8").splitlines()
-    else:
-        lines = ["# JARVIS one-click settings", ""]
+    transaction = None
+    stage = "begin"
+    try:
+        env_path.parent.mkdir(parents=True, exist_ok=True)
+        transaction = store.begin(env_path)
+        stage = "acl"
+        if acl is not None and acl(transaction.temp_path) is not None:
+            raise TypeError("ACL callback must return None")
+        stage = "identity"
+        transaction.check_identity()
+        lines = (transaction.original.splitlines() if transaction.original is not None
+                 else ["# JARVIS one-click settings", ""])
+        content = _render_env(lines, updates)
+        stage = "write"
+        transaction.write_all(content)
+        stage = "flush"
+        transaction.flush()
+        stage = "publish"
+        transaction.publish()
+        stage = "close"
+        transaction.close()
+    except Exception as primary:
+        cleanup_failed = False
+        if transaction is not None:
+            try:
+                transaction.abort()
+            except Exception:
+                cleanup_failed = True
+            try:
+                transaction.close()
+            except Exception:
+                cleanup_failed = True
+        raise EnvPersistenceError(stage, primary, cleanup_failed) from None
+    return env_path
+
+
+def _render_env(lines, updates):
     seen: set[str] = set()
     out: list[str] = []
     for line in lines:
@@ -178,12 +274,7 @@ def update_env(path: str | os.PathLike[str], updates: Mapping[str, str], *,
     for key, value in updates.items():
         if value and key not in seen:
             out.append(f"{key}={value}")
-    temp = env_path.with_name(env_path.name + ".tmp")
-    temp.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
-    os.replace(temp, env_path)
-    if acl:
-        acl(env_path)
-    return env_path
+    return ("\n".join(out).rstrip() + "\n").encode("utf-8")
 
 
 class Redactor:
