@@ -49,7 +49,8 @@ Hidden, argument-list-only helpers:
 |---|---|---|
 | Install Chrome if missing | `winget install --scope user … Google.Chrome` | none |
 | Install native Claude Code if missing | `winget install --scope user … Anthropic.ClaudeCode` | none |
-| Tighten `.env` / `key.pem` ACLs | `icacls …` | none |
+| Save `.env` with a verified user-only DACL | native Windows file handles | none |
+| Tighten `key.pem` ACLs | `icacls …` | none |
 | Generate localhost cert | bundled `openssl.exe req -x509 …` | none |
 | Claude sign-in | `claude.exe auth login` + browser | browser only |
 | Toast notifications | fixed `ShowToast.ps1` | toast only |
@@ -73,6 +74,17 @@ Two browser/security steps cannot be removed by an installer:
 
 A Fish Audio key is the only secret the GUI asks for. It is not an Anthropic API
 key. Claude Code uses the user's subscription/browser login.
+
+Settings persistence requires local NTFS and trusted, stable ancestor directories.
+An empty, exclusively created sibling file receives a protected DACL with exactly
+one explicit full-control grant to the process user SID before content is written.
+The owner must match that SID. Publication uses the retained file handle; failures
+before publication preserve the previous `.env` bytes and ACL. Reusing an existing
+key verifies and replaces its DACL through the same handle used to read it, without
+changing its bytes. Reuse permission changes are not rolled back on later failure.
+The internal ACL callback receives the empty temporary file and must return `None`.
+This policy does not protect against privileged access, same-user compromise,
+previously opened handles, or arbitrary concurrent ancestor substitution.
 
 ## Build machine vs target PC
 

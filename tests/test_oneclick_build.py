@@ -80,10 +80,10 @@ class BuildTests(unittest.TestCase):
             (root / "cert.pem").write_text("cert", encoding="utf-8")
             (root / "installer" / "scripts" / "bad.ps1").write_text("ps", encoding="utf-8")
             (root / "random.exe").write_text("exe", encoding="utf-8")
-            problems = core.scan_payload(root)
+            problems = [Path(path).as_posix() for path in core.scan_payload(root)]
             self.assertIn(".env", problems)
             self.assertIn("cert.pem", problems)
-            self.assertIn("installer/scripts/bad.ps1", problems)
+            self.assertIn(Path("installer/scripts/bad.ps1").as_posix(), problems)
             self.assertIn("random.exe", problems)
             self.assertNotIn("tools/openssl.exe", problems)
             self.assertNotIn("jarvis_win/ShowToast.ps1", problems)

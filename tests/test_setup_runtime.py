@@ -122,7 +122,7 @@ class SetupRuntimeTests(unittest.TestCase):
             runtime = json.loads((root / "runtime.json").read_text())
             self.assertEqual(runtime["bind_host"], "127.0.0.1")
             self.assertEqual(runtime["origin"], "https://localhost:8340")
-            self.assertEqual(runtime["pythonw"], str(pythonw))
+            self.assertEqual(Path(runtime["pythonw"]).resolve(), pythonw.resolve())
 
 
 if __name__ == "__main__":

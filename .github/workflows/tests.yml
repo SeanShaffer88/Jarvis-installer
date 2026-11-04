@@ -1,0 +1,44 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python-version: ['3.12', '3.15']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      - name: Run native gate and full suite
+        shell: pwsh
+        env:
+          JARVIS_TEST_NATIVE_ENV: '1'
+        run: |
+          $fixtureRoot = Join-Path $env:RUNNER_TEMP ('jarvis-native-' + [guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $fixtureRoot -ErrorAction Stop | Out-Null
+          $env:TEMP = $fixtureRoot
+          $env:TMP = $fixtureRoot
+          @'
+          import unittest
+          from tests.test_oneclick import NativeEnvTests
+
+          result = unittest.TextTestRunner(verbosity=2).run(
+              unittest.defaultTestLoader.loadTestsFromTestCase(NativeEnvTests))
+          if result.testsRun != 3 or result.skipped or not result.wasSuccessful():
+              raise SystemExit("Native gate requires 3 passing tests and zero skips")
+          '@ | python -
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/run_tests.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
